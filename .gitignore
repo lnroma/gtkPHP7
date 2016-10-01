@@ -1,0 +1,4 @@
+.idea/
+CMakeLists.txt
+gtkphp7.so
+main.o
