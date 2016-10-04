@@ -19,7 +19,7 @@ void GtkPhpPreviewWindow::cancelClick() {
 /**
  * run preview window
  */
-std::string GtkPhpPreviewWindow::preview(char *fileSrc, std::string fileGlade) {
+std::string GtkPhpPreviewWindow::preview(char *fileSrc) {
     int argc = 0;
     char **argv = NULL;
 

@@ -18,7 +18,6 @@ public:
  */
 Php::Value GtkPhp::preview(Php::Parameters &param) {
     std::string srcPic = param[0];
-    std::string fileGlade = param[1];
 
     char *file;
     file = new char[srcPic.size() + 1];
@@ -26,7 +25,7 @@ Php::Value GtkPhp::preview(Php::Parameters &param) {
     file[srcPic.size()] = '\0';
 
     GtkPhpPreviewWindow *gtkPhpPreview = new GtkPhpPreviewWindow();
-    std::string result = gtkPhpPreview->preview(file,fileGlade);
+    std::string result = gtkPhpPreview->preview(file);
     return result;
 }
 

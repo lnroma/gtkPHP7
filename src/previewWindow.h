@@ -13,7 +13,7 @@ protected:
   int statusCancel = 0;
 
 public:
-  std::string preview(char *fileSrc, std::string fileGlade);
+  std::string preview(char *fileSrc);
   void uploadClick();
   void cancelClick();
   std::string getStatusUpload();
