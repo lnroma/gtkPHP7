@@ -13,10 +13,8 @@ protected:
   int statusCancel = 0;
 
 public:
-  void preview(char *fileSrc, std::string fileGlade);
+  std::string preview(char *fileSrc, std::string fileGlade);
   void uploadClick();
   void cancelClick();
-  Gtk::Window getMainWindow();
   std::string getStatusUpload();
-
 };
