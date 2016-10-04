@@ -1,14 +1,19 @@
 #include <phpcpp.h>
 #include <iostream>
 #include <gtk/gtk.h>
-#include <thread>
+#include <gtkmm.h>
 
-class Gtk : public Php::Base {
+int statusUpload = 0;
+int statusCancel = 0;
+Gtk::Window *mainWindow = nullptr;
+
+class GtkPhp : public Php::Base {
 private:
     GtkWidget *_window;
     char *_titleWindow;
     char *_buttonTitle;
     GtkWidget *_button;
+    GtkWidget *_buttonCancel;
     Php::Value callB;
 
 public:
@@ -16,16 +21,88 @@ public:
     Php::Value setButtonTitle(Php::Parameters &params);
     Php::Value createWindow();
     Php::Value setButton();
+    Php::Value preview(Php::Parameters &param);
     static void callback(GtkButton *button, gpointer data);
+    static void uploadClick(GtkButton *button,gpointer user_data);
+    static void cancelClick();
     Php::Value render();
 };
+
+/**
+ * callback upload button
+ */
+void GtkPhp::uploadClick(GtkButton *button,gpointer user_data) {
+    Php::call("var_dump",button);
+    Php::call("var_dump",user_data);
+    statusUpload = 1;
+    delete mainWindow;
+}
+
+/**
+ * callback cancel button
+ */
+void GtkPhp::cancelClick() {
+    statusCancel = 1;
+    delete mainWindow;
+}
+
+/**
+ * run preview window
+ * @param param
+ * @return string "upload" | "cancel"
+ */
+Php::Value GtkPhp::preview(Php::Parameters &param) {
+    int argc = 0;
+    char **argv = NULL;
+    char *file = nullptr;
+
+    std::string fileSrc = param[0];
+    file = new char[fileSrc.size() + 1];
+    std::copy(fileSrc.begin(), fileSrc.end(), file);
+    file[fileSrc.size()] = '\0';
+
+    Php::Value srcPic = param[0];
+
+    auto app = Gtk::Application::create(argc, argv, "org.gtkmm.gtkphp7");
+    auto refBuilder = Gtk::Builder::create();
+
+    try {
+        refBuilder->add_from_file("picview.glade");
+    } catch(const Glib::FileError& ex) {
+        std::cerr << "FileError: " << ex.what() << std::endl;
+    } catch(const Gtk::BuilderError& ex) {
+        std::cerr << "BuilderError: " << ex.what() << std::endl;
+    }
+
+    refBuilder->get_widget("window1",mainWindow);
+
+    // preview picture
+    Gtk::Image *image = nullptr;
+    refBuilder->get_widget("preview",image);
+    // button ok click
+    Gtk::Button *buttonUpload = nullptr;
+    refBuilder->get_widget("upload",buttonUpload);
+    buttonUpload->signal_clicked().connect( sigc::ptr_fun(&GtkPhp::uploadClick));
+    // button cancel click
+    Gtk::Button *buttonCancel = nullptr;
+    refBuilder->get_widget("cancel",buttonCancel);
+    buttonCancel->signal_clicked().connect( sigc::ptr_fun(&GtkPhp::cancelClick));
+    image->set(file);
+    app->run(*mainWindow);
+
+    if(statusUpload == 1) {
+        return "upload";
+    } else {
+        return "cancel";
+    }
+}
 
 /**
  * set title to window
  * @param params
  * @return Gtk
  */
-Php::Value Gtk::setTitle(Php::Parameters &params) {
+Php::Value GtkPhp::setTitle(Php::Parameters &params) {
     std::string title = params[0];
     _titleWindow = new char[title.size() + 1];
     std::copy(title.begin(), title.end(), _titleWindow);
@@ -35,10 +112,10 @@ Php::Value Gtk::setTitle(Php::Parameters &params) {
 
 /**
  * set button title
- * @param params
- * @return Gtk
+ * @param paramss
+ * @return GtkPhp
  */
-Php::Value Gtk::setButtonTitle(Php::Parameters &params) {
+Php::Value GtkPhp::setButtonTitle(Php::Parameters &params) {
     std::string title = params[0];
     _buttonTitle = new char[title.size() + 1];
     std::copy(title.begin(), title.end(), _buttonTitle);
@@ -48,9 +125,9 @@ Php::Value Gtk::setButtonTitle(Php::Parameters &params) {
 
 /**
  * create window gtk
- * @return Gtk
+ * @return GtkPhp
  */
-Php::Value Gtk::createWindow() {
+Php::Value GtkPhp::createWindow() {
     int argc = 0;
     char **argv = NULL;
     gtk_init(&argc, &argv);
@@ -62,13 +139,13 @@ Php::Value Gtk::createWindow() {
 
 /**
  * set button gtk
- * @return Gtk
+ * @return GtkPhp
  */
-Php::Value Gtk::setButton() {
+Php::Value GtkPhp::setButton() {
     _button = gtk_button_new_with_label(_buttonTitle);
     gtk_container_add(GTK_CONTAINER(_window), _button);
     std::cout << callB << std::endl;
-    g_signal_connect(G_OBJECT(_button), "clicked", G_CALLBACK(&Gtk::callback), G_OBJECT(_window));
+    g_signal_connect(G_OBJECT(_button), "clicked", G_CALLBACK(&GtkPhp::callback), G_OBJECT(_window));
     return this;
 }
 
@@ -77,7 +154,7 @@ Php::Value Gtk::setButton() {
  * @param button
  * @param window
  */
-void Gtk::callback(GtkButton *button, gpointer window) {
+void GtkPhp::callback(GtkButton *button, gpointer window) {
     gtk_widget_destroy(GTK_WIDGET(window));
     gtk_main_quit();
 }
@@ -86,7 +163,7 @@ void Gtk::callback(GtkButton *button, gpointer window) {
  * render alert
  * @return
  */
-Php::Value Gtk::render() {
+Php::Value GtkPhp::render() {
     gtk_widget_show_all(_window);
     gtk_main();
     return true;
@@ -105,14 +182,16 @@ extern "C" {
  */
 PHPCPP_EXPORT void *get_module() {
     static Php::Extension extension("gtkphp7", "1.0");
-    Php::Class<Gtk> gtk("Gtk");
-    gtk.method<&Gtk::setTitle>("setTitle");
-    gtk.method<&Gtk::setButtonTitle>("setButtonTittle");
-    gtk.method<&Gtk::setButton>("setButton");
-    gtk.method<&Gtk::createWindow>("createWindow");
-    gtk.method<&Gtk::render>("render");
+    Php::Class<GtkPhp> gtk("GtkPhp");
+    gtk.method<&GtkPhp::setTitle>("setTitle");
+    gtk.method<&GtkPhp::setButtonTitle>("setButtonTittle");
+    gtk.method<&GtkPhp::setButton>("setButton");
+    gtk.method<&GtkPhp::createWindow>("createWindow");
+    gtk.method<&GtkPhp::render>("render");
+    gtk.method<&GtkPhp::preview>("preview");
     extension.add(std::move(gtk));
     // return the extension
     return extension;
 }
 }
+

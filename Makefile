@@ -88,7 +88,7 @@ LINKER				=	g++
 COMPILER_FLAGS		=	-Wall -c -O2 -std=c++11 -fpic -o
 LINKER_FLAGS		=	-shared
 LINKER_DEPENDENCIES	=	-lphpcpp
-COMPILER_LIBS	 	= 	`pkg-config --cflags --libs gtk+-2.0`
+COMPILER_LIBS	 	= 	`pkg-config --cflags --libs gtk+-3.0 gtkmm-3.0`
 
 #
 #	Command to remove files, copy files and create directories.

@@ -1,10 +1,14 @@
 <?php
-  $gtk = new Gtk;
-  $buttonId = $gtk
-    ->setTitle("testing windows for habr")
-    ->setButtonTittle("testing")
+function alert($title) {
+  $gtk = new GtkPhp;
+  return $gtk
+    ->setTitle($title)
+    ->setButtonTittle("Ok")
     ->createWindow()
     ->setButton()
     ->render();
-  
-var_dump($buttonId);
+}
+
+if(alert("Hellow habr")) {
+   alert("Hellow again");
+}
