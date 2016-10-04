@@ -65,7 +65,7 @@ INI 				=	${NAME}.ini
 #	library file. By default, g++ (the GNU C++ compiler) is used for both.
 #
 
-COMPILER			=	g++
+COMPILER			=	g++ -g
 LINKER				=	g++
 
 
@@ -110,7 +110,7 @@ MKDIR				=	mkdir -p
 #	file, with the .cpp extension being replaced by .o.
 #
 
-SOURCES				=	$(wildcard *.cpp)
+SOURCES				=	$(wildcard src/*.cpp)
 OBJECTS				=	$(SOURCES:%.cpp=%.o)
 
 

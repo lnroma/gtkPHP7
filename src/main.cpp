@@ -2,7 +2,7 @@
 #include <iostream>
 #include <gtk/gtk.h>
 #include <gtkmm.h>
-#include "src/previewWindow.h"
+#include "previewWindow.h"
 
 //int statusUpload = 0;
 //int statusCancel = 0;
@@ -14,13 +14,7 @@ private:
     char *_titleWindow;
     char *_buttonTitle;
     GtkWidget *_button;
-    GtkWidget *_buttonCancel;
     Php::Value callB;
-    Gtk::Window *mainWindow = nullptr;
-
-protected:
-    int statusUpload = 0;
-    int statusCancel = 0;
 
 public:
     Php::Value setTitle(Php::Parameters &params);
@@ -29,35 +23,18 @@ public:
     Php::Value setButton();
     Php::Value preview(Php::Parameters &param);
     static void callback(GtkButton *button, gpointer data);
-    void uploadClick();
-    void cancelClick();
-    char *strToChar(std::string string);
+    char *strToChar(std::string str);
     Php::Value render();
 };
 
 /**
- * callback upload button
- */
-void GtkPhp::uploadClick() {
-    statusUpload = 1;
-    delete mainWindow;
-}
-
-/**
- * callback cancel button
- */
-void GtkPhp::cancelClick() {
-    statusCancel = 1;
-    delete mainWindow;
-}
-
-/**
  * converting string to char array
  */
-char *strToChar(std::string string) {
-    char *charStr = new char[string.size()+1];
-    std::copy(string.begin(),string.end(),charStr);
-    charStr[string.size()] = '\0';
+char *strToChar(std::string str) {
+    char *charStr;
+    charStr = new char[str.size()+1];
+    std::copy(str.begin(),str.end(),charStr);
+    charStr[str.size()] = '\0';
     return charStr;
 }
 
@@ -67,47 +44,18 @@ char *strToChar(std::string string) {
  * @return string "upload" | "cancel"
  */
 Php::Value GtkPhp::preview(Php::Parameters &param) {
-
     std::string srcPic = param[0];
     std::string fileGlade = param[1];
-    char *file = strToChar(srcPic);
+
+    char *file;
+    file = new char[srcPic.size() + 1];
+    std::copy(srcPic.begin(), srcPic.end(),file);
+    file[srcPic.size()] = '\0';
+
     GtkPhpPreviewWindow *gtkPhpPreview = new GtkPhpPreviewWindow();
-    gtkPhpPreview->preview(file,fileGlade);
-    return "string";
-//    return gtkPhpPreview->preview(file,fileGlade);
-//    auto app = Gtk::Application::create(argc, argv, "org.gtkmm.gtkphp7");
-//    auto refBuilder = Gtk::Builder::create();
-
-//  try {
-//        refBuilder->add_from_file("picview.glade");
-//    } catch(const Glib::FileError& ex) {
-//        std::cerr << "FileError: " << ex.what() << std::endl;
-//    } catch(const Gtk::BuilderError& ex) {
-//        std::cerr << "BuilderError: " << ex.what() << std::endl;
-//    }
-
-//    refBuilder->get_widget("window1",mainWindow);
-
-    // preview picture
-//    Gtk::Image *image = nullptr;
-//    refBuilder->get_widget("preview",image);
-    // button ok click
-//    Gtk::Button *buttonUpload = nullptr;
-//    refBuilder->get_widget("upload",buttonUpload);
-    //GtkPhp *gtkphp;
-//    buttonUpload->signal_clicked().connect(sigc::mem_fun(*this,&GtkPhp::uploadClick));
-    // button cancel click
-//    Gtk::Button *buttonCancel = nullptr;
-//    refBuilder->get_widget("cancel",buttonCancel);
-//    buttonCancel->signal_clicked().connect(sigc::mem_fun(*this,&GtkPhp::cancelClick));
-//    image->set(file);
-//    app->run(*mainWindow);
-
-//    if(statusUpload == 1) {
-//        return "upload";
-//    } else {
-//        return "cancel";
-//    }
+    Gtk::Application app = gtkPhpPreview->preview(file,fileGlade);
+    app->run(gtkPhpPreview->getMainWindow());
+    return getStatusUpload();
 }
 
 /**
