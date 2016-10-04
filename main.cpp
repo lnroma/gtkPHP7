@@ -3,9 +3,9 @@
 #include <gtk/gtk.h>
 #include <gtkmm.h>
 
-int statusUpload = 0;
-int statusCancel = 0;
-Gtk::Window *mainWindow = nullptr;
+//int statusUpload = 0;
+//int statusCancel = 0;
+//Gtk::Window *mainWindow = nullptr;
 
 class GtkPhp : public Php::Base {
 private:
@@ -15,6 +15,11 @@ private:
     GtkWidget *_button;
     GtkWidget *_buttonCancel;
     Php::Value callB;
+    Gtk::Window *mainWindow = nullptr;
+
+protected:
+    int statusUpload = 0;
+    int statusCancel = 0;
 
 public:
     Php::Value setTitle(Php::Parameters &params);
@@ -23,17 +28,15 @@ public:
     Php::Value setButton();
     Php::Value preview(Php::Parameters &param);
     static void callback(GtkButton *button, gpointer data);
-    static void uploadClick(GtkButton *button,gpointer user_data);
-    static void cancelClick();
+    void uploadClick();
+    void cancelClick();
     Php::Value render();
 };
 
 /**
  * callback upload button
  */
-void GtkPhp::uploadClick(GtkButton *button,gpointer user_data) {
-    Php::call("var_dump",button);
-    Php::call("var_dump",user_data);
+void GtkPhp::uploadClick() {
     statusUpload = 1;
     delete mainWindow;
 }
@@ -82,11 +85,12 @@ Php::Value GtkPhp::preview(Php::Parameters &param) {
     // button ok click
     Gtk::Button *buttonUpload = nullptr;
     refBuilder->get_widget("upload",buttonUpload);
-    buttonUpload->signal_clicked().connect( sigc::ptr_fun(&GtkPhp::uploadClick));
+    //GtkPhp *gtkphp;
+    buttonUpload->signal_clicked().connect(sigc::mem_fun(*this,&GtkPhp::uploadClick));
     // button cancel click
     Gtk::Button *buttonCancel = nullptr;
     refBuilder->get_widget("cancel",buttonCancel);
-    buttonCancel->signal_clicked().connect( sigc::ptr_fun(&GtkPhp::cancelClick));
+    buttonCancel->signal_clicked().connect(sigc::mem_fun(*this,&GtkPhp::cancelClick));
     image->set(file);
     app->run(*mainWindow);
 
